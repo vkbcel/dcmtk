@@ -71,7 +71,7 @@ configure_file("${DCMTK_SOURCE_DIR}/CMake/osconfig.h.in"
 if(CMAKE_CROSSCOMPILING)
   if(WIN32)
     set(DCMTK_RUN_CTEST_SCRIPT "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/dcmtkCTestRunWine.cmake" CACHE INTERNAL "path to the CMake script for launching a unit test as a detached Wine process in the prepared wineprefix")
-  elseif(ANDROID)
+  elseif(ANDROID AND DCMTK_ANDROID_USE_EMULATOR)
     set(DCMTK_RUN_CTEST_SCRIPT "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/dcmtkCTestRunAndroid.cmake" CACHE INTERNAL "path to the CMake script for launching a unit test via the android emulator")
   elseif(NOT CMAKE_CROSSCOMPILING_EMULATOR)
     message(WARNING "Emulation for your target platform is not available, CTest will not be able to execute the unit tests!")
@@ -139,7 +139,7 @@ if(CMAKE_CROSSCOMPILING)
     configure_file("${DCMTK_SOURCE_DIR}/CMake/CTest/dcmtkCTestRunWine.cmake.in"
       "${DCMTK_RUN_CTEST_SCRIPT}" ESCAPE_QUOTES @ONLY
     )
-  elseif(ANDROID)
+  elseif(ANDROID AND DCMTK_ANDROID_USE_EMULATOR)
     DCMTK_ANDROID_STOP_EMULATOR(DCMTK_ANDROID_EMULATOR_INSTANCE)
     # Prepare setting environment variable DCMDICTPATH
     set(DICTIONARIES ${DCMTK_DICOM_DICTIONARIES})
