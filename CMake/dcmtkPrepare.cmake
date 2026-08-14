@@ -178,6 +178,7 @@ endif()
 option(BUILD_APPS "Build command line applications and test programs." ON)
 option(BUILD_SHARED_LIBS "Build with shared libraries." OFF)
 option(BUILD_SINGLE_SHARED_LIBRARY "Build a single DCMTK library." OFF)
+option(DCMTK_ANDROID_USE_EMULATOR "Run Android configuration checks in an emulator." ON)
 mark_as_advanced(BUILD_SINGLE_SHARED_LIBRARY)
 set(DCMTK_TLS_LIBRARY_POSTFIX "" CACHE STRING "Postfix for libraries that change their ABI when using OpenSSL.")
 # add our CMake modules to the module path, but prefer the ones from CMake.
@@ -296,10 +297,19 @@ if(CMAKE_CROSSCOMPILING)
   if(WIN32)
     include("${DCMTK_CMAKE_INCLUDE}CMake/dcmtkUseWine.cmake")
     DCMTK_SETUP_WINE()
-  elseif(ANDROID)
+  elseif(ANDROID AND DCMTK_ANDROID_USE_EMULATOR)
     include("${DCMTK_CMAKE_INCLUDE}CMake/dcmtkUseAndroidSDK.cmake")
     # Ensure the configuration variables for the Android device emulator exist in the cache.
     DCMTK_SETUP_ANDROID_EMULATOR()
+  elseif(ANDROID)
+    # Android target executables cannot run on the build host without an emulator.
+    set(DCMTK_NO_TRY_RUN ON CACHE BOOL "Disable configure-time target execution" FORCE)
+    if(NOT DCMTK_WITH_ICONV)
+      set(DCMTK_WITH_STDLIBC_ICONV OFF CACHE BOOL
+        "Configure DCMTK with iconv support from the C standard library" FORCE)
+    endif()
+    set(ANDROID_TEMPORARY_FILES_LOCATION "/data/local/cache" CACHE STRING
+      "The path on the Android device that should be used for temporary files")
   endif()
 endif()
 
@@ -316,7 +326,7 @@ include("${DCMTK_CMAKE_INCLUDE}CMake/dcmtkMacros.cmake")
 
 if(CMAKE_CROSSCOMPILING)
   unset(DCMTK_UNIT_TESTS_UNSUPPORTED_WARN_ONCE CACHE)
-  if(ANDROID)
+  if(ANDROID AND DCMTK_ANDROID_USE_EMULATOR)
     unset(DCMTK_TRY_RUN_ANDROID_RUNTIME_INSTALLED CACHE)
     DCMTK_ANDROID_START_EMULATOR(DCMTK_ANDROID_EMULATOR_INSTANCE)
   endif()
